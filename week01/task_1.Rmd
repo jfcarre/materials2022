@@ -1,0 +1,22 @@
+---
+title: "Task 1"
+author: "José F Carreño"
+date: '2022-02-28'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is the R Markdown for the first assignment of the course "Bioinformatic Approaches for Regulatory Genomics & Epigenomics".
+
+```{r load necessart library}
+library(epiwraps)
+```
+
+```{r print session info}
+sessionInfo()
+```

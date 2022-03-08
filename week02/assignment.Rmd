@@ -1,0 +1,94 @@
+---
+title: "assignment"
+author: "José F Carreño"
+date: '2022-03-07'
+output: html_document
+---
+
+```{r}
+suppressPackageStartupMessages({
+  library(AnnotationHub)
+  library(ensembldb)
+  library(GenomicRanges)
+  library(epiwraps)
+})
+```
+
+
+## Download the mouse (Mus Musculus) EnsDb object
+
+```{r}
+# Create the AnnotationHub object
+ah <- AnnotationHub()
+
+# To download interactively the Mus Musculus EnsDb object
+# Uncomment to download a new dataset
+# display(ah)
+```
+```{r}
+#Load the Mus Musculus dataset
+mouse_ensdb <- ah[["AH89211"]]
+mouse_ensdb
+```
+## Download the Mouse Genome Sequence
+
+```{r}
+#Load the mouse genome sequence 
+#Load version 102 
+mouse_gs <- ah[["AH88477"]]
+mouse_gs
+```
+
+## Download the Drosophila Melanogaster Genome Sequence
+
+```{r}
+#Load the drosophila melanogaster genome sequence
+#Last version downloaded
+dros_gs <- ah[["AH99424"]]
+dros_gs
+```
+
+## Perform some data analysis on the mouse EnsDb object
+```{r}
+#Print some information about the Data Object to familiarize with its structure
+listTables(mouse_ensdb)
+```
+
+```{r}
+# Get the list of all types of genes --> We are interested in protein_coding genes
+listGenebiotypes(mouse_ensdb)
+```
+```{r}
+#Filter only the protein_coding genes from the original database 
+#supportedFilters()
+mouse_pc <- genes(mouse_ensdb, filter = GeneBiotypeFilter("protein_coding"), columns = c("gene_id", "symbol"))
+
+#Get the number of different IDs from this filter
+length(unique(mouse_pc$gene_id))
+
+#Get the number of different gene symbols from this filter
+length(unique(mouse_pc$symbol))
+```
+
+## Distribution of how many exons have each protein-coding gene
+
+```{r}
+#Get the mouse protein coding genes filter. Add the exon related columns
+exsPerGene <- exonsBy(mouse_ensdb, by = "gene", filter=GeneBiotypeFilter("protein_coding"))
+
+nbExonsPerGene <- lengths(exsPerGene)
+hist(nbExonsPerGene)
+```
+
+## Distribution of spliced length of protein-coding genes
+
+```{r}
+#Get the mouse protein coding genes filter. Add the exon related columns
+#exsPerGene <- exonsBy(mouse_ensdb, by = "gene", filter=GeneBiotypeFilter("protein_coding"))
+head(exsPerGene)
+
+length_exons <- sum(width(exsPerGene))
+hist(length_exons)
+```
+
+## Time spend on this assginment: 4 hours

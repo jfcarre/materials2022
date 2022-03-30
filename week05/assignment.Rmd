@@ -1,0 +1,128 @@
+---
+title: "assignment"
+author: "José F Carreño"
+date: '2022-03-29'
+output: html_document
+---
+
+```{r, eval=FALSE}
+BiocManager::install("ETHZ-INS/epiwraps")
+```
+
+
+```{r}
+suppressPackageStartupMessages({
+  library(AnnotationHub)
+  library(Rsubread)
+  library(rtracklayer)
+  library(Biostrings)
+  library(Rfastp)
+  library(epiwraps)
+  library(csaw)
+})
+
+ah <- AnnotationHub(localHub=TRUE)
+ensdb <- ah[["AH89211"]]
+```
+
+## Downloading mESC data
+
+Add download links for reproducibility purposes
+
+```{r}
+dir.create("peaks")
+# p300
+download.file("https://www.encodeproject.org/files/ENCFF460EOA/@@download/ENCFF460EOA.bed.gz", "peaks/p300.bed.gz")
+# H3K27me3
+download.file("https://www.encodeproject.org/files/ENCFF008XKX/@@download/ENCFF008XKX.bed.gz", "peaks/H3K27me3.bed.gz")
+# H3K4me3
+download.file("https://www.encodeproject.org/files/ENCFF974BMC/@@download/ENCFF974BMC.bed.gz", "peaks/H3K4me3.bed.gz")
+```
+
+## Reading in the data
+
+```{r}
+p300 <- import("peaks/p300.bed.gz", format="NarrowPeak")
+k4me3 <- import("peaks/H3K4me3.bed.gz", format="NarrowPeak")
+k27me3 <- import("peaks/H3K27me3.bed.gz", format="NarrowPeak")
+```
+
+## Overlaps
+### Overview
+
+```{r}
+listOfRegions <- list(p300=p300, k4me3=k4me3, k27me3=k27me3)
+regionOverlaps(listOfRegions)
+regionUpset(listOfRegions)
+```
+
+### Analyze Individual Chromosomes -  Identify bivalent domains
+
+Check the distribution of the overlapping regions within each chromosome
+```{r}
+#NOTE: OverlapsAny() will compare every region in the second element with every region in the first element, hence the number of TRUE/FALSE will be the same as the number of ranges in the first element
+overlaps_k4me3_k27me3 <- overlapsAny(k27me3, k4me3)
+k27me3_short <- k27me3[overlaps_k4me3_k27me3]
+cromosomeCount_k27me3 <- seqnames(k27me3_short)
+
+#Check for consistency the overlapping distribution on k4me3
+k4me3_short <- k4me3[overlapsAny(k4me3, k27me3)]
+cromosomeCount_k4me3 <- seqnames(k4me3_short)
+
+print(cromosomeCount_k27me3)
+print(cromosomeCount_k4me3)
+```
+
+## Changes on the regions upon differentiation
+### Select a differentiated cell: Neural Tube Cells
+
+```{r}
+dir.create("peaks_neural")
+# H3K27me3
+download.file("https://www.encodeproject.org/files/ENCFF306PYA/@@download/ENCFF306PYA.bed.gz", "peaks_neural/H3K27me3.bed.gz")
+# H3K4me3
+download.file("https://www.encodeproject.org/files/ENCFF306PYA/@@download/ENCFF306PYA.bed.gz", "peaks_neural/H3K4me3.bed.gz")
+
+k4me3_neural <- import("peaks_neural/H3K4me3.bed.gz", format="NarrowPeak")
+k27me3_neural <- import("peaks_neural/H3K27me3.bed.gz", format="NarrowPeak")
+```
+
+### Study overlaps
+
+Overlap of the H3K27me3 modification between mESC and Neural Tube cells
+
+```{r}
+overlaps_k27me3_mESC_neural <- overlapsAny(k27me3, k27me3_neural)
+k27me3_neural_mESC <- k27me3[overlaps_k27me3_mESC_neural]
+seqnames(k27me3_neural_mESC)
+```
+Overlap of the H3K4me3 modification between mESC and Neural Tube cells
+
+```{r}
+overlaps_k4me3_mESC_neural <- overlapsAny(k4me3, k4me3_neural)
+k4me3_neural_mESC <- k4me3[overlaps_k4me3_mESC_neural]
+seqnames(k4me3_neural_mESC)
+```
+
+Overlap of the bivalent regions H3K27me3-H3K4me3 between mESC and Neural Tube Cells
+
+```{r}
+#Overlap between the modifications in the neural tube cells
+overlaps_k4me3_k27me3_neural <- overlapsAny(k27me3_neural, k4me3_neural)
+k4me3_k27me3_neural <- k27me3_neural[overlaps_k4me3_k27me3_neural]
+seqnames(k4me3_k27me3_neural)
+
+#Regions overlapping both modifications in the mESC and neural tube cells
+overlaps_k4me3_k27me3_neural_mESC <- overlapsAny(k27me3_short, k4me3_k27me3_neural)
+k4me3_k27me3_neural_mESC <- k27me3_short[overlaps_k4me3_k27me3_neural_mESC]
+seqnames(k4me3_k27me3_neural_mESC)
+```
+
+To summarize all the information obtained, we create a heatmap and a histogram
+```{r}
+listOfRegions <- list(k4me3_mESC=k4me3, k27me3_mESC=k27me3, k4me3_neuralTube=k4me3_neural, k27me3_neuralTube=k27me3_neural)
+regionOverlaps(listOfRegions)
+regionUpset(listOfRegions)
+```
+
+From the heatmap, it can be seen that the H3K27me3 modification in mESC is the less conserved upon differentiation, while the H3K4me3 modification is the most conserved modification upon differentiation. To study how these modifications evolve in the different chromosomes, a more in depth analysis is needed.

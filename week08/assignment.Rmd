@@ -1,0 +1,22 @@
+---
+title: "assignment"
+author: "José F Carreño"
+date: '2022-05-04'
+output: html_document
+---
+
+## 1. Topic
+
+The topic of this project will be based on the article "Immediate and deferred epigenomic signatures of in vivo neuronal activation in mouse hippocampus" by Jordi Ferandez-Albert et al. 
+
+## 2. Data
+
+The data for this project will be the same as the one used in the paper. Raw and processed datasets are available in the GEO repository with code GSE125068 (https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE125068).
+
+The data contain RNA from the nucleus and ribosomal RNA (nuRNA and riboRNA), ATAC-seq, ChIP-seq coming from mouse adult hippocampal excitatory neurons. The data is available for control mice and epileptic-induced mice. 
+
+## 3. Analysis
+
+As a first start and with the purpose of getting familiar with epigenomic data and epigenomic data analysis pipelines, the first objective of this project would be to replicate some of the results obtained by the authors. The paper is provided with an in depth analysis of the available data and multiple figures to visualize such analysis (both in the main paper and in the supplementary material). More specifically, work involving all the technologies used in this article will be performed.
+
+As a vague outline of further analysis, I expect to keep reading about other analysis that can be performed to epigenomic data and that are nowadays used by scientific community, with the objective of apply them to the data of the aforementioned article. 

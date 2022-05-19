@@ -1,0 +1,194 @@
+---
+title: "assignment"
+author: "Jose F Carreno"
+output: html_document
+---
+
+```{r}
+suppressPackageStartupMessages({
+  library(GenomicRanges)
+  library(epiwraps)
+  library(ggplot2)
+  library(rGREAT)
+  library(AnnotationHub)
+  library(ensembldb)
+  library(bsseq)
+  library(BiocParallel)
+  library(edgeR)
+})
+set.seed(40)
+```
+## Download data 
+
+```{r, eval=FALSE}
+download.file("https://ethz-ins.org/content/w10.zip", "homework/w10.zip")
+unzip("homework/w10.zip")
+```
+
+
+## Differential Methylation Testing
+### Load Data
+```{r}
+promoterRegions <- readRDS("./data_practical/promoterRegions.rds")
+geneBodies <- readRDS("./data_practical/genebodies.rds")
+bsseqEx <- readRDS("./data_practical/bsseqEx.rds")
+dmrRanges <- readRDS("./data_practical/dmr.rds")
+sampleNames(bsseqEx)
+```
+
+### Plot Differentially Methylated Regions
+
+For each tissue and each sample, produce a heatmap to visualize the differentially methilated regions at the promoter regions
+
+```{r}
+metPromoters <- bsseq::getMeth(bsseqEx, regions=dmrRanges, type="raw", what="perRegion")
+
+promoterRegionsHbRep1 <- GRanges(seqnames = seqnames(dmrRanges), 
+                            ranges = ranges(dmrRanges), 
+                            strand = strand(dmrRanges), 
+                            score = metPromoters[, "hb_rep1"])
+
+promoterRegionsHbRep1
+
+promoterRegionsHbRep2 <- GRanges(seqnames = seqnames(dmrRanges), 
+                            ranges = ranges(dmrRanges), 
+                            strand = strand(dmrRanges), 
+                            score = metPromoters[, "hb_rep2"])
+
+promoterRegionsHbRep2
+
+promoterRegionsNtRep1 <- GRanges(seqnames = seqnames(dmrRanges), 
+                            ranges = ranges(dmrRanges), 
+                            strand = strand(dmrRanges), 
+                            score = metPromoters[, "nt_rep1"])
+
+promoterRegionsNtRep1
+
+promoterRegionsNtRep2 <- GRanges(seqnames = seqnames(dmrRanges), 
+                            ranges = ranges(dmrRanges), 
+                            strand = strand(dmrRanges), 
+                            score = metPromoters[, "nt_rep2"])
+
+promoterRegionsNtRep2
+
+```
+
+Create a signal matrix
+
+```{r}
+tracks <- c(
+    "hb_rep1"=promoterRegionsHbRep1,
+    "hb_rep2"=promoterRegionsHbRep2,
+    "nt_rep1"=promoterRegionsNtRep1,
+    "nt_rep2"=promoterRegionsNtRep2
+)
+m <- signal2Matrix(tracks, dmrRanges, extend=1000, w=20, type="scale", smooth=FALSE)
+```
+
+Plot heatmap:
+
+```{r}
+plotEnrichedHeatmaps(m, scale_title="Proportion\nmethylated", axis_name = c("TSS","TES"), colors = c("white","red"))
+```
+
+
+
+
+
+
+Comment on this result: Does this mean a sudden change between methylation and no methilation? And, does this mean that methylation is highly conserved between the samples that I am plotting? I am not sure that this result is correct, but I don't know what might be wrong.
+
+
+Smoothed Data (This chunk produce an error, hence it is not evaluated)
+```{r, eval = FALSE}
+bsseqEx <- BSmooth(BSseq=bsseqEx, 
+                   BPPARAM=MulticoreParam(workers = 4), 
+                   verbose = TRUE)
+
+getMeth(bsseqEx, regions=dmrRanges, type="smooth", what="perRegion")
+```
+
+Same strategy as before:
+
+```{r, eval = FALSE}
+promoterRegionsHbRep1 <- GRanges(seqnames = seqnames(dmrRanges), 
+                            ranges = ranges(dmrRanges), 
+                            strand = strand(dmrRanges), 
+                            score = metPromoters[, "hb_rep1"])
+
+promoterRegionsHbRep1
+
+promoterRegionsHbRep2 <- GRanges(seqnames = seqnames(dmrRanges), 
+                            ranges = ranges(dmrRanges), 
+                            strand = strand(dmrRanges), 
+                            score = metPromoters[, "hb_rep2"])
+
+promoterRegionsHbRep2
+
+promoterRegionsNtRep1 <- GRanges(seqnames = seqnames(dmrRanges), 
+                            ranges = ranges(dmrRanges), 
+                            strand = strand(dmrRanges), 
+                            score = metPromoters[, "nt_rep1"])
+
+promoterRegionsNtRep1
+
+promoterRegionsNtRep2 <- GRanges(seqnames = seqnames(dmrRanges), 
+                            ranges = ranges(dmrRanges), 
+                            strand = strand(dmrRanges), 
+                            score = metPromoters[, "nt_rep2"])
+
+promoterRegionsNtRep2
+
+```
+
+Create a signal matrix
+
+```{r, eval = FALSE}
+tracks <- c(
+    "hb_rep1"=promoterRegionsHbRep1,
+    "hb_rep2"=promoterRegionsHbRep2,
+    "nt_rep1"=promoterRegionsNtRep1,
+    "nt_rep2"=promoterRegionsNtRep2
+)
+m <- signal2Matrix(tracks, dmrRanges, extend=1000, w=20, type="scale", smooth=FALSE)
+```
+
+Plot heatmap:
+
+```{r, eval = FALSE}
+plotEnrichedHeatmaps(m, scale_title="Proportion\nmethylated", axis_name = c("TSS","TES"), colors = c("white","red"))
+```
+
+
+## Enrichment analysis
+The objective of the enrichment analysis is to know what are the main biological roles of the genes that are differentially methylated.
+
+
+### Clustering
+
+```{r, eval = FALSE}
+cl <- clusterSignalMatrices(m, k=4)
+```
+
+Find what's enriched in one cluster with respect to the others:
+
+```{r, eval = FALSE}
+split_regions <- split(dmrRanges, cl)
+
+# we send the data to the GREAT server to run an enrichment analysis
+# Here we are comparing signal in each cluster with every other signal in every other regions
+#Job submission returns an error that I cannot fix
+job <- submitGreatJob(split_regions, dmrRanges, species="mm10")
+res <- getEnrichmentTables(job)
+names(res)
+```
+
+```{r, eval = FALSE}
+bp <- res$`GO Biological Process`
+head(bp)
+```
+
+```{r, eval = FALSE}
+ggplot(head(bp,20), aes(Hyper_Fold_Enrichment, reorder(name, Hyper_Adjp_BH), size=Hyper_Foreground_Region_Hits, color=-log10(Hyper_Adjp_BH))) + geom_point() + scale_color_viridis_c()
+```
+

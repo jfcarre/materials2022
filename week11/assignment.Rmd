@@ -1,0 +1,155 @@
+---
+title: "assignment"
+author: "Jose F Carreno"
+date: "5/26/2022"
+output: html_document
+---
+
+```{r}
+suppressPackageStartupMessages({
+  library(GenomicRanges)
+  library(AnnotationHub)
+  library(ensembldb)
+  library(InteractionSet)
+  library(epiwraps)
+})
+```
+
+## Obtain the data
+
+```{r, eval = FALSE}
+# p300 peaks in A549 cells:
+download.file("https://www.encodeproject.org/files/ENCFF776TFX/@@download/ENCFF776TFX.bed.gz", "p300.narrowPeak.gz")
+# Hi-C long-range interactions in A549 cells:
+download.file("https://www.encodeproject.org/files/ENCFF803ZOW/@@download/ENCFF803ZOW.tsv", "interactions.tsv")
+```
+
+Load the interaction data, and form an GInteractions object:
+
+```{r}
+hic <- read.delim("interactions.tsv")
+anchor1 <- GRanges(hic$chr1, IRanges(hic$x1, hic$x2))
+anchor2 <- GRanges(hic$chr2, IRanges(hic$y1, hic$y2))
+gi <- GInteractions(anchor1, anchor2, observed=hic$observed)
+gi
+```
+
+Load the peaks:
+
+```{r}
+peaks <- rtracklayer::import("p300.narrowPeak.gz")
+seqlevelsStyle(peaks) <- "ensembl"
+```
+
+## Link genomic interactions to TSS
+
+We'll need this function:
+
+```{r}
+gi2targets <- function(gi, proms){
+  stopifnot(is(gi, "GInteractions"))
+  if(is(proms, "GRanges")){
+    stopifnot(!is.null(proms$gene_name))
+    seqlevelsStyle(proms) <- "ensembl"
+    proms <- proms[proms$gene_name!=""]
+  }else if(is(proms, "EnsDb")){
+    # obtain the promoters
+    proms <- trim(suppressWarnings(promoters(
+      transcripts(ensdb, columns=c("gene_name")),
+      upstream=100,downstream=50)))
+    proms <- proms[proms$gene_name!=""]
+  }else{
+    stop("Unrecognized `proms` format")
+  }
+  seqlevelsStyle(gi) <- "ensembl"
+  # find overlaps between first anchor and promoters
+  o <- as.data.frame(findOverlaps(first(gi), proms))
+  o$gene <- proms$gene_name[o$subjectHits]
+  o <- o[!duplicated(o[,c(1,3)]),]
+  o1 <- splitAsList(o$gene, o$queryHits)
+  # find overlaps between second anchor and promoters
+  o <- as.data.frame(findOverlaps(second(gi), proms))
+  o$gene <- proms$gene_name[o$subjectHits]
+  o <- o[!duplicated(o[,c(1,3)]),]
+  o2 <- splitAsList(o$gene, o$queryHits)
+  # merge anchors with an overlap in the mate anchor
+  hic2 <- c( first(gi)[as.numeric(names(o2))], second(gi)[as.numeric(names(o1))] )
+  # add target gene
+  hic2$gene <- c(o2,o1)
+  sort(hic2)
+}
+```
+
+We first obtain the gene annotation (takes a long time if you don't already have the annotation):
+
+```{r, eval}
+ah <- AnnotationHub()
+ensdb <- ah[["AH95744"]] # human ensembl 104 annotation
+```
+
+
+We need to anotate the nearest gene to each peak. We can do this as:
+
+```{r}
+peakAnno <- annotateRegions(peaks, ensdb, proximal = c(2500, 10000, 10000000))
+table(peakAnno$class)
+```
+
+From the summary of this operation, we can see that there are `r sum(peakAnno$class == "proximal >2500&<=10000bp")` peaks between 2.5kb and 10kb from a TSS and `r sum(peakAnno$class == "proximal >10000&<=1e+07bp")` peaks farther than 10kb. 
+
+Now, we can isolate peaks from this regions of interest. 
+
+```{r}
+proximal_peaks = peakAnno[peakAnno$class == "proximal >2500&<=10000bp"]
+distal_peaks = peakAnno[peakAnno$class == "proximal >10000&<=1e+07bp"]
+```
+
+
+Now, we can add a small modification to the GRanges object that contain the annotations information. In this way, we are making this object suitable to be fetch into the gi2targets function. 
+```{r}
+proximal_peaks$gene_name = proximal_peaks$nearestTSS.gene_name
+distal_peaks$gene_name = distal_peaks$nearestTSS.gene_name
+```
+
+
+Now, we can get the names of the genes involved in the genetic interactions:
+
+```{r}
+gi2 <- gi2targets(gi, ensdb)
+```
+
+## Checking distal targets of peaks
+
+```{r}
+# find overlaps
+overlap_proximal <- findOverlaps(proximal_peaks, gi2)
+overlap_distal <- findOverlaps(distal_peaks, gi2)
+
+# add target genes to the proximal peaks
+mcols(proximal_peaks)[from(overlap_proximal),"target"] <- gi2[to(overlap_proximal)]$gene
+mcols(proximal_peaks)$target <- CharacterList(mcols(proximal_peaks)$target)
+
+# add target genes to the distal peaks
+mcols(distal_peaks)[from(overlap_distal),"target"] <- gi2[to(overlap_distal)]$gene
+mcols(distal_peaks)$target <- CharacterList(mcols(overlap_distal)$target)
+
+
+```
+
+
+Finally, we check how many of these targets of peaks are the same as the closest position to the TSS region
+
+```{r}
+equal_proximal = proximal_peaks$gene_name == proximal_peaks$target
+equal_proximal[is.na(equal_proximal)] = FALSE
+sol1 = sum(sum(equal_proximal[equal_proximal == TRUE]))
+
+
+
+equal_distal = distal_peaks$gene_name == distal_peaks$target
+equal_distal[is.na(equal_distal)] = FALSE
+sol2 = sum(sum(equal_distal[equal_distal == TRUE]))
+```
+
+So, while `r (sol1/sum(peakAnno$class == "proximal >2500&<=10000bp")) *100`% of the genes that are between 2.5kb and 10kb from the nearest TSS form an interaction with its nearest gene, `r (sol2/sum(peakAnno$class == "proximal >10000&<=1e+07bp")) *100`% of the genes that are farther than 10kb form an interaction with its nearest gene. 
+

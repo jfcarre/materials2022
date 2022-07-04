@@ -1,0 +1,68 @@
+---
+title: "4_Discussion&Conclusion"
+author: "José F Carreño"
+date: "2/7/2022"
+output: html_document
+---
+
+# 3. Discussion
+
+## 3.1. RNA-seq analysis
+
+The results obtained during the differential expression analysis for the nuRNA-seq and the riboRNA-seq can be considered to be coincident with the ones reported in the original study. However, despite there are some minor differences in the number of upregulated/downregulated genes for the case of the nuRNA-seq, there exist more notable differences in the number of differentially expressed genes for the case of riboRNA-seq information. These differences might be due to the thresholds used in the log2FoldChange to delimit differentially expressed transcripts. 
+
+On the other hand, the enrichment analysis for the most upregulated transcripts shows clear differences with respect to the one expected. Nevertheless, some of the most enriched functions are present in both results showing a clear coherence between both analysis. Furthermore, it is possible that some of these differences are due to the hierarchical organization of the PANTHER tool, showing in some results higher levels of the organization that are less significant in the other results so only the lower organization levels are present. 
+
+## 3.2. ATAC-seq analysis
+
+The results obtained after the ATAC-seq analysis show clear differences with respect to those published in by Fernandez-Albert et al. 
+
+The first and most relevant difference is that the distribution of the read lengths is different in the original article and in this replication study. And given that after the processing done in this project the results are still far to be similar, it is possible that the source of differences is upstream in the pipeline. More specifically, it has been noticed that the minimum read length considered for the trimming in the original article was 50bp, while the minimum read length considered in this study was 25bp. 
+
+This difference greatly impact downstream results, as different amount of mononucleosomes, dimers... would be reported. There is a direct impact of this result in the motif analysis, as there are some motifs that are not found in some replicates. 
+
+However, the problem with finding the motifs in the replicates might also come from another source, as it is the calculation of the consensus peaks. It is not clear how the authors managed the different replicates for his study, so it is difficult to do perform this processing in the same way. 
+
+# 4. Conclusions
+
+After the analysis and interpretation of the nuRNA-seq, riboRNA-seq and ATAC-seq data, it can be stated that, despite some results were in the same line than in the original article as it is the case of the RNA-seq data, the ATAC-seq data shown remarkable differences with the expected outcome. Partly, some of these differences can be related to the bad processing of the ATAC-seq data. The trimming and the possible fine-tuned parameters in the downstream analysis may be the main sources of differences between the original article and this replication study. 
+
+From the results obtained, some conclusions can also be obtained for the epigenetic modifications occurring during SE condition. Right after the seizure episode, there is a clear disruption of the brain function, that can be observed both in the Differential Expression Analysis and in the Differential Accession Analysis. However, this disruption tends to be regulated with some delay, creating a predisposition to recover the pre-disease state. Nevertheless, this last statement is in contradiction with the pseudotime analysis performed in this study, in which this tendency is difficult to infer. 
+
+Despite the differences between the original article and this replication study, the most important conclusions that are stated in the original paper can also be obtained from this replication study, what shows the coherence between the results obtained and the ones expected.
+
+# 6. References
+
+[1] Fernandez-Albert, J., Lipinski, M., Lopez-Cascales, M. T., Rowley, M. J., Martin-Gonzalez, A. M., del Blanco, B., Corces, V. G., & Barco, A. (2019). Immediate and deferred epigenomic signatures of in vivo neuronal activation in mouse hippocampus. In Nature Neuroscience (Vol. 22, Issue 10, pp. 1718–1730). Springer Science and Business Media LLC. https://doi.org/10.1038/s41593-019-0476-2
+
+[2] Yap, E.-L., & Greenberg, M. E. (2018). Activity-Regulated Transcription: Bridging the Gap between Neural Activity and Behavior. In Neuron (Vol. 100, Issue 2, pp. 330–348). Elsevier BV. https://doi.org/10.1016/j.neuron.2018.10.013
+
+[3] Zucker, R. S., & Regehr, W. G. (2002). Short-Term Synaptic Plasticity. In Annual Review of Physiology (Vol. 64, Issue 1, pp. 355–405). Annual Reviews. https://doi.org/10.1146/annurev.physiol.64.092501.114547
+
+[4] Hernandez, P. J., & Abel, T. (2008). The role of protein synthesis in memory consolidation: Progress amid decades of debate. In Neurobiology of Learning and Memory (Vol. 89, Issue 3, pp. 293–311). Elsevier BV. https://doi.org/10.1016/j.nlm.2007.09.010
+
+[5] Tyssowski, K. M., & Gray, J. M. (2019). The neuronal stimulation–transcription coupling map. In Current Opinion in Neurobiology (Vol. 59, pp. 87–94). Elsevier BV. https://doi.org/10.1016/j.conb.2019.05.001
+
+[6] Sung, Y.-J., & Ambron, R. T. (2004). Pathways that elicit long-term changes in gene expression in nociceptive neurons following nerve injury: contributions to neuropathic pain. In Neurological Research (Vol. 26, Issue 2, pp. 195–203). Informa UK Limited. https://doi.org/10.1179/016164104225013761
+
+[7] Kolberg L, Raudvere U, Kuzmin I, Vilo J, Peterson H (2020). “gprofiler2– an R package for gene list functional enrichment analysis and namespace conversion toolset g:Profiler.” F1000Research, 9 (ELIXIR)(709). R package version 0.2.1.
+
+[8] Raudvere, U., Kolberg, L., Kuzmin, I., Arak, T., Adler, P., Peterson, H. and Vilo, J., 2019. g: Profiler: a web server for functional enrichment analysis and conversions of gene lists (2019 update). Nucleic Acids Research, 47(W1), pp.W191-W198.; doi:10.1093/nar/gkz369
+
+[9] Huaiyu Mi, Dustin Ebert, Anushya Muruganujan, Caitlin Mills, Laurent-Philippe Albou, Tremayne Mushayamaha and Paul D Thomas
+Nucl. Acids Res. (2020) doi: 10.1093/nar/gkaa1106s.
+
+[10] Rezwani, M., Pourfathollah, A. A., & Noorbakhsh, F. (2022). rbioapi: user-friendly R interface to biologic web services’ API. In J. Wren (Ed.), Bioinformatics (Vol. 38, Issue 10, pp. 2952–2953). Oxford University Press (OUP). https://doi.org/10.1093/bioinformatics/btac172
+
+[11] Love, M. I., Huber, W., & Anders, S. (2014). Moderated estimation of fold change and dispersion for RNA-seq data with DESeq2. In Genome Biology (Vol. 15, Issue 12). Springer Science and Business Media LLC. https://doi.org/10.1186/s13059-014-0550-8
+
+[12] Ou, J., Liu, H., Yu, J., Kelliher, M. A., Castilla, L. H., Lawson, N. D., & Zhu, L. J. (2018). ATACseqQC: a Bioconductor package for post-alignment quality assessment of ATAC-seq data. In BMC Genomics (Vol. 19, Issue 1). Springer Science and Business Media LLC. https://doi.org/10.1186/s12864-018-4559-3
+
+[13] Shannon P, Richards M (2022). MotifDb: An Annotated Collection of Protein-DNA Binding Sequence Motifs. R package version 1.38.0.
+
+# 7. Session Info
+
+```{r}
+sessionInfo()
+```
+

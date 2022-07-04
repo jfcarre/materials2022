@@ -1,0 +1,25 @@
+---
+title: "Introduction"
+author: "Jose F Carreno"
+date: "5/04/2022"
+output: 
+  html_document:
+    code_folding: show
+---
+
+# Abstract
+
+Activity-dependent transcription is known to influence neuronal identity, playing important roles in brain function as contributing to memory formation. However, the transcriptomics and epigenomics changes of this process are still not completely understood *in-vivo*. The objective of this project is to replicate the results presented in [], which provides a deep analysis of the aforementioned processes combining techniques such as RNA-seq, ChIP-seq, ATAC-seq and HiC. More specifically, for this project, the data used will be the RNA-seq and the ATAC-seq data. 
+
+HERE SOME RESULTS AND CONCLUSIONS
+
+# 1. Introduction
+
+Despite the current understanding of how neurons are able to store information for short time periods through their synapses, it is still not completely clear how they store information for longer periods [3]. However, there are evidences that changes in the nuclear elements are related to long-term information storage [1, 2, 4, 5, 6].
+
+In this line, activity-dependent transcription promotes the refinement and plasticity of neural circuits, influencing neuronal identity, cognitive function or memory formation. Neurons use this mechanism to adapt their response to the different situations they might experience during their life [2]. The changes that occur in the nuclear elements are, among others, DNA epigenetic modifications, differences in the amount of mRNA transcripts and thereof differences in the species and amount of protein present within the cell.
+
+This long-term information assimilation process is tightly regulated and its disruption has important consequences in the physiology of the living entity. One example is epilepsy, in which a subject undergoes recurrent unprovoked seizures, leading to disruption of brain function and deregulation of the brain activity.
+
+The aim of this project is the replication of some of the results obtained by Fernandez-Albert, J. et al. in their work *Immediate and deferred epigenomic signatures of in vivo neuronal activation in mouse hippocampus* [1]. In the aforementioned article, the authors provide an integrated view of different elements of the neurons (chromatin changes, nuclear mRNA production, ribosomal mRNA production and Hi-C analysis) during basal state and pathological state (status epilepticus, SE). The objective of this original article was to provide insights into both the rapid changes in gene expression and the long-term changes in the nuclear elements of the neurons during processes such as epilepsy or memory formation.
+
